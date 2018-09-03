@@ -1,0 +1,2 @@
+#define media_filter_VERSION_MAJOR @media_filter_VERSION_MAJOR@
+#define media_filter_VERSION_MINOR @media_filter_VERSION_MINOR@
