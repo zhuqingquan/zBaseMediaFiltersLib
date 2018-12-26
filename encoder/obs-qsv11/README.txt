@@ -1,0 +1,5 @@
+整个项目从obs-studio项目中移植过来
+因为该项目必须在vs2013及以上版本上编译，否则需要做比较多的代码改动，
+因此在sln文件夹中添加一个MediaDirectorLocal的解决方案用于编译这个项目。
+项目中的obs-qsv11.c、obs-qsv11-plugin-main.c没有加入项目中编译，因为这两个文件与obs基础模块关联太大。
+QSV_Encoder.cpp、QSV_Encoder_Internal.cpp中的写日志已失效，因为使用了obs的日志模块。

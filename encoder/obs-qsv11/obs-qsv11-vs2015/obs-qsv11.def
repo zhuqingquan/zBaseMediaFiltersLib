@@ -1,0 +1,9 @@
+LIBRARY obs-qsv11
+EXPORTS
+	qsv_encoder_close			@1
+	qsv_encoder_reconfig		@2
+	qsv_encoder_version			@3
+	qsv_encoder_open			@4
+	qsv_encoder_encode			@5
+	qsv_encoder_headers			@6
+	qsv_get_cpu_platform		@7

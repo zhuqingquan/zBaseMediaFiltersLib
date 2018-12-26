@@ -15,5 +15,7 @@ configure_file(
 	
 include_directories("${PROJECT_BINARY_DIR}")
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/utils ${PROJECT_BINARY_DIR}/utils)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/utils ${PROJECT_BINARY_DIR}/utils)
 add_subdirectory(${PROJECT_SOURCE_DIR}/media_filter ${PROJECT_BINARY_DIR}/media_filter)
+add_subdirectory(${PROJECT_SOURCE_DIR}/encoder/obs-qsv11)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/encoder/MediaEncoder ${PROJECT_BINARY_DIR}/encoder/MediaEncoder)

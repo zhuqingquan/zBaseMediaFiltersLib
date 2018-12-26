@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CB9050B2-5836-4390-B250-CA729388D932}</ProjectGuid>
+    <RootNamespace>obsqsv11</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\..\..\bin\$(ConfigurationName)</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;OBSQSV11_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ModuleDefinitionFile>obs-qsv11.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\;$(ProjectDir)\..\libmfx\include\msdk\include;$(ProjectDir)\..\libmfx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DX11_D3D;OBSQSV11_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>d3d9.lib;d3d11.lib;dxva2.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\..\bin\$(ConfigurationName)\$(TargetName)$(TargetExt)</OutputFile>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+    </Lib>
+    <Link>
+      <OutputFile>..\..\..\bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>d3d9.lib;d3d11.lib;dxva2.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>obs-qsv11.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common_directx11.cpp" />
+    <ClCompile Include="..\common_directx9.cpp" />
+    <ClCompile Include="..\common_utils.cpp" />
+    <ClCompile Include="..\common_utils_windows.cpp" />
+    <ClCompile Include="..\device_directx9.cpp" />
+    <ClCompile Include="..\libmfx\src\main.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_critical_section.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_dispatcher.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_dispatcher_log.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_dxva2_device.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_function_table.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_library_iterator.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_load_dll.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_load_plugin.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_plugin_hive.cpp" />
+    <ClCompile Include="..\libmfx\src\mfx_win_reg_key.cpp" />
+    <ClCompile Include="..\QSV_Encoder.cpp" />
+    <ClCompile Include="..\QSV_Encoder_Internal.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common_directx11.h" />
+    <ClInclude Include="..\common_directx9.h" />
+    <ClInclude Include="..\common_utils.h" />
+    <ClInclude Include="..\device_directx9.h" />
+    <ClInclude Include="..\libmfx\include\mfxaudio_exposed_functions_list.h" />
+    <ClInclude Include="..\libmfx\include\mfx_critical_section.h" />
+    <ClInclude Include="..\libmfx\include\mfx_dispatcher.h" />
+    <ClInclude Include="..\libmfx\include\mfx_dispatcher_defs.h" />
+    <ClInclude Include="..\libmfx\include\mfx_dispatcher_log.h" />
+    <ClInclude Include="..\libmfx\include\mfx_dxva2_device.h" />
+    <ClInclude Include="..\libmfx\include\mfx_exposed_functions_list.h" />
+    <ClInclude Include="..\libmfx\include\mfx_library_iterator.h" />
+    <ClInclude Include="..\libmfx\include\mfx_load_dll.h" />
+    <ClInclude Include="..\libmfx\include\mfx_load_plugin.h" />
+    <ClInclude Include="..\libmfx\include\mfx_plugin_hive.h" />
+    <ClInclude Include="..\libmfx\include\mfx_vector.h" />
+    <ClInclude Include="..\libmfx\include\mfx_win_reg_key.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxastructures.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxaudio++.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxaudio.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxcommon.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxdefs.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxenc.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxjpeg.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxmvc.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxpak.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxplugin++.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxplugin.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxsession.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxstructures.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxvideo++.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxvideo.h" />
+    <ClInclude Include="..\libmfx\include\msdk\include\mfxvstructures.h" />
+    <ClInclude Include="..\QSV_Encoder.h" />
+    <ClInclude Include="..\QSV_Encoder_Internal.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="obs-qsv11.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
