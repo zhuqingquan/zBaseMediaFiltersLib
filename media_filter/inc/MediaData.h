@@ -18,13 +18,13 @@ typedef uint8_t BYTE;
 * @name    MediaBufferType
 * @brief   Identify the type of MediaBuffer object.
 **/
-typedef enum MediaBufferType
+typedef enum _MediaBufferType
 {
 	MEDIA_BUFFER_TYPE_UNKNOW = 0,
 	MEDIA_BUFFER_TYPE_MEMORY,		// The buffer is allocated in normal system memory
 	MEDIA_BUFFER_TYPE_OPENGL_TEX,	// The buffer is allocated in video card by opengl driver
 	MEDIA_BUFFER_TYPE_D3D11_TEX,	// The buffer is allocated in video card by D3D11 driver
-};
+}MediaBufferType;
 
 namespace zMedia {
 

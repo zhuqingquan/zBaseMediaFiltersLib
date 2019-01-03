@@ -1,0 +1,2 @@
+#define utils_VERSION_MAJOR @utils_VERSION_MAJOR@
+#define utils_VERSION_MINOR @utils_VERSION_MINOR@

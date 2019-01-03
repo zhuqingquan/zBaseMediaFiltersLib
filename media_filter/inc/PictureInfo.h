@@ -11,12 +11,27 @@
 
 namespace zMedia
 {
+	// YUV的颜色空间标准
+	enum video_colorspace {
+		VIDEO_CS_DEFAULT,
+		VIDEO_CS_601,
+		VIDEO_CS_709,
+	};
+
+	// YUV取值区间
+	enum video_range_type {
+		VIDEO_RANGE_DEFAULT,
+		VIDEO_RANGE_PARTIAL,
+		VIDEO_RANGE_FULL
+	};
+
 		//色彩空间 define
 		enum E_PIXFMT
 		{
 			PIXFMT_E_NONE = 0,
 			PIXFMT_E_YV12,  // yvu yvu
 			PIXFMT_E_I420,	//等同FOURCC_IYUV  //yuv yuv
+			PIXFMT_E_NV12,	// NV12, Y UV
 			PIXFMT_E_YUY2,	//等同FOURCC_YUYV
 			PIXFMT_E_UYVY,
 			PIXFMT_E_RGB565,   
@@ -29,7 +44,7 @@ namespace zMedia
 
 		//单个像素的字节个数
 		//需配合E_PIXFMT使用，如 PixelBytesCount[PIXFMT_E_RGB32], 若E_PIXFMT的修改导致PixelBytesCount[n]出错，则应同步修改PixelBytesCount
-		static const float PixelBytesCount[] = {0, 1.5, 1.5, 2, 2, 2, 3, 4, 4, 4, 4};
+		static const float PixelBytesCount[] = {0, 1.5, 1.5, 1.5, 2, 2, 2, 3, 4, 4, 4, 4};
 
 		struct PICTURE_FORMAT
 		{
@@ -42,7 +57,7 @@ namespace zMedia
 			PICTURE_FORMAT(int width, int height, E_PIXFMT colorspace)
 				: w(width), h(height), ePixfmt(colorspace)
 				, stride(0), u_stride(0), v_stride(0), a_stride(0)
-                                , pts(0)
+                , pts(0)
 			{
 				switch(ePixfmt)
 				{
@@ -62,6 +77,12 @@ namespace zMedia
 					u_stride = Align16Bytes(w>>1);//w/2
 					v_stride = Align16Bytes(w>>1);//w/2
 					break;
+				case PIXFMT_E_NV12:
+					// NV12数据时uv planar的stride使用u_stride保存，v_stride无效
+					y_stride = Align16Bytes(w);
+					u_stride = Align16Bytes(w);
+					v_stride = 0;
+					break;
 				default:
 					break;
 				}
@@ -71,7 +92,7 @@ namespace zMedia
                             int _stride, int _uStride, int _vStride, int _aStride)
 				: w(width), h(height), ePixfmt(colorspace)
 				, stride(_stride), u_stride(_uStride), v_stride(_vStride), a_stride(_aStride)
-                                , pts(0)
+                , pts(0)
 			{
 			}
 
@@ -80,7 +101,7 @@ namespace zMedia
                             unsigned int _pts)
 				: w(width), h(height), ePixfmt(colorspace)
 				, stride(_stride), u_stride(_uStride), v_stride(_vStride), a_stride(_aStride)
-                                , pts(_pts)
+                , pts(_pts)
 			{
 			}
 
@@ -103,6 +124,8 @@ namespace zMedia
 				case PIXFMT_E_YV12:
 				case PIXFMT_E_I420:
 					return y_stride>0 && u_stride>0 && v_stride>0;
+				case PIXFMT_E_NV12:
+					return y_stride > 0 && u_stride > 0;
 				default:
 					return false;
 				}
@@ -200,6 +223,8 @@ namespace zMedia
             inline const BYTE* y() const;
             inline const BYTE* u() const;
             inline const BYTE* v() const;
+			// for NV12 YV12, the UV or VU planar
+			inline const BYTE* uv() const;
             inline const BYTE* a() const;
 
             /**
@@ -245,6 +270,7 @@ namespace zMedia
             case PIXFMT_E_I420:
             case PIXFMT_E_YUY2:
             case PIXFMT_E_UYVY:
+			case PIXFMT_E_NV12:
                 return NULL;
             case PIXFMT_E_RGB565:
             case PIXFMT_E_RGB24:
@@ -267,6 +293,7 @@ namespace zMedia
             case PIXFMT_E_I420:
             case PIXFMT_E_YUY2:
             case PIXFMT_E_UYVY:
+			case PIXFMT_E_NV12:
                 return m_buf.data();
             case PIXFMT_E_RGB565:
             case PIXFMT_E_RGB24:
@@ -287,6 +314,7 @@ namespace zMedia
             {
             case PIXFMT_E_YV12:
             case PIXFMT_E_I420:
+			case PIXFMT_E_NV12:
                 return m_buf.data();
             case PIXFMT_E_YUY2:
             case PIXFMT_E_UYVY:
@@ -316,6 +344,7 @@ namespace zMedia
                 return m_buf.data() + m_format.y_stride*m_format.h;
             case PIXFMT_E_YUY2:
             case PIXFMT_E_UYVY:
+			case PIXFMT_E_NV12:
                 return NULL;
             case PIXFMT_E_RGB565:
             case PIXFMT_E_RGB24:
@@ -341,7 +370,8 @@ namespace zMedia
                 return m_buf.data() + m_format.y_stride*m_format.h + m_format.u_stride * (m_format.h >> 1);
             case PIXFMT_E_YUY2:
             case PIXFMT_E_UYVY:
-                return NULL;
+			case PIXFMT_E_NV12:
+				return NULL;
             case PIXFMT_E_RGB565:
             case PIXFMT_E_RGB24:
             case PIXFMT_E_RGB32:
@@ -354,6 +384,31 @@ namespace zMedia
             }
         }
 
+		const BYTE* PictureRaw::uv() const
+		{
+			if (!m_format.isValid()) return NULL;
+			switch (m_format.ePixfmt)
+			{
+			case PIXFMT_E_NV12:
+				//yyyy vv uu
+				return m_buf.data() + m_format.y_stride*m_format.h;
+			case PIXFMT_E_I420:
+			case PIXFMT_E_YUY2:
+			case PIXFMT_E_UYVY:
+			case PIXFMT_E_YV12:
+				return NULL;
+			case PIXFMT_E_RGB565:
+			case PIXFMT_E_RGB24:
+			case PIXFMT_E_RGB32:
+			case PIXFMT_E_RGBA:
+			case PIXFMT_E_BGRA:
+				return NULL;
+			default:
+				assert(!"不支持的像素格式");
+				return NULL;
+			}
+		}
+
         const BYTE* PictureRaw::a() const
         {
             if(!m_format.isValid()) return NULL;
@@ -361,7 +416,8 @@ namespace zMedia
             {
             case PIXFMT_E_YV12:
             case PIXFMT_E_I420:
-            case PIXFMT_E_YUY2:
+			case PIXFMT_E_NV12:
+			case PIXFMT_E_YUY2:
             case PIXFMT_E_UYVY:
             case PIXFMT_E_RGB565:
             case PIXFMT_E_RGB24:

@@ -61,7 +61,6 @@ install (FILES ${INC_DIR}/BoostInc.h
     ${INC_DIR}/mediafilter.h 
     ${INC_DIR}/PcmData.h 
     ${INC_DIR}/PictureInfo.h 
-    ${INC_DIR}/RingBuffer.h 
     ${INC_DIR}/VideoData.h 
     ${INC_DIR}/IVideoProcessor.h 
     DESTINATION include)

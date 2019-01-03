@@ -1,0 +1,2 @@
+#define MediaEncoder_VERSION_MAJOR @MediaEncoder_VERSION_MAJOR@
+#define MediaEncoder_VERSION_MINOR @MediaEncoder_VERSION_MINOR@
