@@ -55,6 +55,8 @@ namespace zUtils
 	char **strlist_split(const char *str, char split_ch, bool include_empty);
 	void strlist_free(char **strlist);
 	int astrcmpi(const char *str1, const char *str2);
+	BOOL str2Guid(const std::wstring& szGUID, GUID& outGuid);
+	std::wstring guid2Str(GUID *guid);
 
 }
 

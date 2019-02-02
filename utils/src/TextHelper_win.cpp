@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <Windows.h>
+#include <tchar.h>
 #include "TextHelper.h"
 
 using namespace std;
@@ -465,5 +466,45 @@ int astrcmpi(const char *str1, const char *str2)
 	} while (*str1++ && *str2++);
 
 	return 0;
+}
+
+BOOL str2Guid(const std::wstring& szGUID, GUID& outGuid)
+{
+	if (szGUID.empty())
+	{
+		outGuid = GUID_NULL;
+		return TRUE;
+	}
+	char buf[128] = { 0 };
+	GUID& Guid = *((GUID*)buf);//{0};
+	int nRet = swscanf(szGUID.c_str(),
+		L"{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
+		&Guid.Data1,
+		&Guid.Data2,
+		&Guid.Data3,
+		&Guid.Data4[0], &Guid.Data4[1],
+		&Guid.Data4[2], &Guid.Data4[3], &Guid.Data4[4], &Guid.Data4[5], &Guid.Data4[6], &Guid.Data4[7]
+	);
+
+	outGuid = Guid;
+
+	return nRet > 8;
+}
+
+std::wstring guid2Str(GUID *guid)
+{
+	if (guid == NULL)
+	{
+		return L"";
+	}
+	wchar_t guid_string[39];
+	swprintf(
+		guid_string, sizeof(guid_string) / sizeof(guid_string[0]),
+		L"{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
+		guid->Data1, guid->Data2, guid->Data3,
+		guid->Data4[0], guid->Data4[1], guid->Data4[2],
+		guid->Data4[3], guid->Data4[4], guid->Data4[5],
+		guid->Data4[6], guid->Data4[7]);
+	return guid_string;
 }
 }
