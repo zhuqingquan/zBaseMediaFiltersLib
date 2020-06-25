@@ -4,8 +4,8 @@
 #include "framework.h"
 #include "zAudioMixer.h"
 
-static const int DLT_MIN = -10;
-static const int DLT_MAX = 10;
+static const double DLT_MIN = -10 / 32767.0f;
+static const double DLT_MAX = 10 / 32767.0f;
 
 void mixPcms(const std::vector<short*>& pcms, int samples, const std::vector<double>& volumeFactors, short* output, double masterVolumeFactor)
 {
@@ -28,8 +28,8 @@ void mixPcms(const std::vector<short*>& pcms, int samples, const std::vector<dou
 			// treshold: 0     0.1   0.2   0.3   0.4   0.5   0.6   0.7    0.8    0.9
 			// alpha:    2.51  2.84  3.26  3.82  4.59  5.71  7.48  10.63  17.51  41.15
 			double out = 0;
-			double t = 0.9;
-			double a = 41.15;
+			double t = 0.6;
+			double a = 7.48;
 			double x = mixTotal;
 			int n = pcms.size();
 
@@ -37,7 +37,7 @@ void mixPcms(const std::vector<short*>& pcms, int samples, const std::vector<dou
 			{
 				out = x;
 			}
-			else if (curVal >= DLT_MIN && curVal <= DLT_MAX)
+			else if (d==mixTotal || (d >= DLT_MIN && d <= DLT_MAX))
 			{
 				out = x;
 			}
