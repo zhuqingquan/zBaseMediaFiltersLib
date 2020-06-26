@@ -28,6 +28,7 @@ include_directories("../../utils/inc")
 file(GLOB_RECURSE INC_LIST ${INC_DIR}/*.h)
 
 set(SRC_LIST 
+    ${SRC_DIR}/AudioDevCaptureSrc_CAA.cpp
     ${SRC_DIR}/AudioDevCaptureSource_DS.cpp 
 	${SRC_DIR}/AudioDevManager.cpp 
 )
@@ -48,4 +49,5 @@ install (FILES ${INC_DIR}/AudioDev.h
     ${INC_DIR}/AudioDevManager.h 
     ${INC_DIR}/AudioDevCaptureSource.h 
 	${INC_DIR}/AudioDevCaptureSource_DS.h 
+    ${INC_DIR}/AudioDevCaptureSrc_CAA.h
     DESTINATION include)

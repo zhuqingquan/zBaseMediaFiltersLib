@@ -21,12 +21,13 @@ namespace zMedia
 class AUDIO_CAPTURE_EXPORT_IMPORT AudioDevCaptureSource_DS : public AudioDevCaptureSource
 {
 public:
-	AudioDevCaptureSource_DS(const char* id);
+	AudioDevCaptureSource_DS(const char* id = nullptr);
 	virtual ~AudioDevCaptureSource_DS();
 
 	virtual const char* id() const { return m_id.c_str(); }
 
-	virtual int start(const AudioCaptureDevInfo* auDevInfo, const WAVEFORMATEX& waveFmt);
+	virtual std::vector<WAVEFORMATEX> getSurpportFormat(const AudioDevInfo* auDevInfo);
+	virtual int start(const AudioDevInfo* auDevInfo, const WAVEFORMATEX& waveFmt);
 	virtual void stop();
 
 	virtual int read(const uint8_t* buffer, size_t count, int index);

@@ -1,7 +1,7 @@
 #include "AudioDevManager.h"
-#include <DSound.h>
 #define INITGUID
 #include <mmdeviceapi.h>	//core audio api
+#include <DSound.h>
 #include <functiondiscoverykeys.h>
 #include "TextHelper.h"
 #include <tchar.h>
@@ -20,7 +20,7 @@ AudioDevManager::~AudioDevManager()
 
 }
 
-int AudioDevManager::getAudioCaptureDevList(AudioCaptureDevInfo* pCapDevList, size_t& count)
+int AudioDevManager::getAudioCaptureDevList(AudioDevInfo* pCapDevList, size_t& count)
 {
 	size_t originCount = count;
 	int ds_count = 0, coreAudioApi_Count = 0;
@@ -28,8 +28,8 @@ int AudioDevManager::getAudioCaptureDevList(AudioCaptureDevInfo* pCapDevList, si
 	{
 		ds_count = 0;
 	}
-	size_t curCountFree = originCount - count;
-	if (0 > (coreAudioApi_Count = getAudioCaptureDevList_CoreAudioAPI(pCapDevList+count, curCountFree)))
+	size_t curCountFree = originCount - ds_count;
+	if (0 > (coreAudioApi_Count = getAudioDevList_CoreAudioAPI(pCapDevList+ ds_count, curCountFree, eCapture, DEVICE_STATE_ACTIVE)))
 	{
 		coreAudioApi_Count = 0;
 	}
@@ -40,22 +40,27 @@ int AudioDevManager::getAudioCaptureDevList(AudioCaptureDevInfo* pCapDevList, si
 ////////// Get Audio Capture Device List with DirectSound ////////////////////
 struct AudioCaptureDevInfoList
 {
-	AudioCaptureDevInfo* pCapDevList;
+	AudioDevInfo* pCapDevList;
 	size_t count;	//pCapDevList的总长度
 	size_t size;	//赋值的信息个数
 	int index;		//当前的index
 
-	AudioCaptureDevInfoList(AudioCaptureDevInfo* _pCapDevList, size_t _count, int _index)
+	AudioCaptureDevInfoList(AudioDevInfo* _pCapDevList, size_t _count, int _index)
 		: pCapDevList(_pCapDevList), count(_count), index(_index), size(0)
 	{}
 };
 
 BOOL CALLBACK DSEnumProc(LPGUID guid, LPCTSTR desc, LPCTSTR drv, LPVOID obj)
 {
+	if (guid == nullptr || GUID_NULL == *guid)
+	{
+		// 此处过滤掉guid为0的默认设备，这个是其他设备的重复
+		return TRUE;
+	}
 	AudioCaptureDevInfoList *pInfoList = (AudioCaptureDevInfoList*)obj;
 	if (NULL == pInfoList || pInfoList->index >= (int)pInfoList->count - 1)
 		return FALSE;
-	AudioCaptureDevInfo* devInfo = pInfoList->pCapDevList + pInfoList->index;
+	AudioDevInfo* devInfo = pInfoList->pCapDevList + pInfoList->index;
 	if (devInfo == NULL)
 		return FALSE;
 	devInfo->set(guid, desc, drv);
@@ -64,10 +69,16 @@ BOOL CALLBACK DSEnumProc(LPGUID guid, LPCTSTR desc, LPCTSTR drv, LPVOID obj)
 	return TRUE;
 }
 
-int AudioDevManager::getAudioCaptureDevList_DirectSound(AudioCaptureDevInfo* pCapDevList, size_t& count)
+// DirectSound default capture device GUID {DEF00001-9C6D-47ED-AAF1-4DDA8F2B5C03}
+const GUID DEF_DSDEVID_DefaultCapture = { 0xdef00001, 0x9c6d, 0x47ed,{ 0xaa, 0xf1,  0x4d,  0xda,  0x8f,  0x2b,  0x5c,  0x03 } };
+//DEFINE_GUID(DEF_DSDEVID_DefaultCapture, 0xdef00001, 0x9c6d, 0x47ed, 0xaa, 0xf1, 0x4d, 0xda, 0x8f, 0x2b, 0x5c, 0x03);
+
+int AudioDevManager::getAudioCaptureDevList_DirectSound(AudioDevInfo* pCapDevList, size_t& count)
 {
 	if (pCapDevList == NULL || count <= 0)
 		return -1;
+	GUID defaultCapDevID = { 0 };
+	HRESULT hr = GetDeviceID(&DEF_DSDEVID_DefaultCapture, &defaultCapDevID);
 	AudioCaptureDevInfoList tmpInfoList(pCapDevList, count, 0);
 	if (DirectSoundCaptureEnumerate(DSEnumProc, (LPVOID)&tmpInfoList) == DS_OK)
 	{
@@ -76,12 +87,23 @@ int AudioDevManager::getAudioCaptureDevList_DirectSound(AudioCaptureDevInfo* pCa
 			return -2;
 		}
 		count = tmpInfoList.size;
+		if (hr == S_OK)
+		{
+			// 如果默认音频捕捉设备获取成功，设置设备的bPrimary属性
+			for (size_t i = 0; i < tmpInfoList.size; i++)
+			{
+				AudioDevInfo* devInfo = pCapDevList + i;
+				if (nullptr == devInfo)	continue;
+				if (devInfo->guid == defaultCapDevID)
+					devInfo->bPrimary = true;
+			}
+		}
 		return tmpInfoList.size;
 	}
 	return -3;
 }
 
-int zMedia::AudioDevManager::getAudioCaptureDevList_CoreAudioAPI(AudioCaptureDevInfo * pCapDevList, size_t & count)
+int zMedia::AudioDevManager::getAudioDevList_CoreAudioAPI(AudioDevInfo * pCapDevList, size_t & count, /*EDataFlow*/DWORD devDataFlow, DWORD stateMask)
 {
 	if (pCapDevList == NULL || count <= 0)
 		return -1;
@@ -95,7 +117,7 @@ int zMedia::AudioDevManager::getAudioCaptureDevList_CoreAudioAPI(AudioCaptureDev
 		return -2;
 	}
 	IMMDeviceCollection* pDevCol = nullptr;
-	hr = pDevEnum->EnumAudioEndpoints(eCapture, DEVICE_STATE_ACTIVE, &pDevCol);
+	hr = pDevEnum->EnumAudioEndpoints((EDataFlow)devDataFlow, /*DEVICE_STATE_ACTIVE*/stateMask, &pDevCol);
 	if (hr != S_OK || nullptr == pDevCol)
 	{
 		pDevEnum->Release();
@@ -116,7 +138,7 @@ int zMedia::AudioDevManager::getAudioCaptureDevList_CoreAudioAPI(AudioCaptureDev
 		return 0;
 	}
 	IMMDevice* defaultDev = nullptr;
-	hr = pDevEnum->GetDefaultAudioEndpoint(eCapture, eMultimedia, &defaultDev);
+	hr = pDevEnum->GetDefaultAudioEndpoint((EDataFlow)devDataFlow, eMultimedia, &defaultDev);
 	LPWSTR defaultDevId = nullptr;
 	defaultDev->GetId(&defaultDevId);
 	for (UINT i = 0; i < devCount; i++)
@@ -158,9 +180,9 @@ int zMedia::AudioDevManager::getAudioCaptureDevList_CoreAudioAPI(AudioCaptureDev
 			hr = pProps->GetValue(PKEY_DeviceInterface_FriendlyName, &varAdapterName);
 
 			// Print endpoint friendly name and endpoint ID.
-			_tcprintf(L"Endpoint %d: \"%ls\" (%ls)\n", i, varName.pwszVal, devID);
+			//_tcprintf(L"Endpoint %d: \"%ls\" (%ls)\n", i, varName.pwszVal, devID);
 
-			AudioCaptureDevInfo* devInfo = tmpInfoList.pCapDevList + tmpInfoList.index;
+			AudioDevInfo* devInfo = tmpInfoList.pCapDevList + tmpInfoList.index;
 			if (devInfo == NULL)
 				continue;
 			GUID guid;
@@ -189,4 +211,9 @@ int zMedia::AudioDevManager::getAudioCaptureDevList_CoreAudioAPI(AudioCaptureDev
 	pDevEnum->Release();
 	count = tmpInfoList.size;
 	return tmpInfoList.size;
+}
+
+int zMedia::AudioDevManager::getAudioOutputDevList(AudioDevInfo* pCapDevList, size_t& count)
+{
+	return getAudioDevList_CoreAudioAPI(pCapDevList, count, eRender, DEVICE_STATE_ACTIVE);
 }

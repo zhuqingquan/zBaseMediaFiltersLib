@@ -23,7 +23,7 @@
 namespace zMedia
 {
 
-struct AudioCaptureDevInfo
+struct AudioDevInfo
 {
 	GUID	 guid;
 	wchar_t* strDescription;
@@ -31,13 +31,13 @@ struct AudioCaptureDevInfo
 	wchar_t* strDevID;			// 专门用于保存通过Core Audio API获取到的Device ID。通过DS接口获取到的设备信息中没有这个信息
 	bool	 bPrimary;
 
-	AudioCaptureDevInfo()
+	AudioDevInfo()
 		: strDescription(NULL), strModule(NULL), bPrimary(false), strDevID(NULL)
 	{
 		memset(&guid, 0, sizeof(GUID));
 	}
 
-	AudioCaptureDevInfo(LPGUID lpGuid, LPCTSTR lpcstrDesc, LPCTSTR lpcstrModule)
+	AudioDevInfo(LPGUID lpGuid, LPCTSTR lpcstrDesc, LPCTSTR lpcstrModule)
 		: strDescription(NULL), strModule(NULL), bPrimary(false)
 	{
 		memset(&guid, 0, sizeof(GUID));
@@ -75,7 +75,7 @@ struct AudioCaptureDevInfo
 		}
 	}
 
-	~AudioCaptureDevInfo()
+	~AudioDevInfo()
 	{
 		if (strDescription) { free(strDescription); strDescription = NULL; }
 		if (strModule) { free(strModule); strModule = NULL; }

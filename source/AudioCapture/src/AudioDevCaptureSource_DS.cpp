@@ -1,4 +1,5 @@
 #include "AudioDevCaptureSource_DS.h"
+#define INITGUID
 #include <dsound.h>
 
 #pragma comment(lib, "Dsound.lib")
@@ -26,7 +27,87 @@ AudioDevCaptureSource_DS::~AudioDevCaptureSource_DS()
 //	return false;
 //}
 
-int AudioDevCaptureSource_DS::start(const AudioCaptureDevInfo* auDevInfo, const WAVEFORMATEX& waveFmt)
+std::vector<WAVEFORMATEX> AudioDevCaptureSource_DS::getSurpportFormat(const AudioDevInfo* auDevInfo)
+{
+	std::vector<WAVEFORMATEX> result;
+	if (auDevInfo == NULL || (IsEqualGUID(auDevInfo->guid, GUID_NULL) && !auDevInfo->bPrimary))
+		return result;
+
+	IDirectSoundCapture* capture = nullptr;
+	HRESULT hr = DirectSoundCaptureCreate(&auDevInfo->guid, &capture, NULL);
+	if (hr != DS_OK)
+	{
+		return result;
+	}
+	DSCCAPS caps = { 0 };
+	caps.dwSize = sizeof(DSCCAPS);
+	hr = capture->GetCaps(&caps);
+	if (FAILED(hr))
+		return result;
+	if (0 == caps.dwChannels || 0 == caps.dwFormats)
+		return result;
+	auto func = [&result](int ch, int sampleRate, int bitsPerSample){
+		WAVEFORMATEX waveFmt = { 0 };
+		waveFmt.cbSize = sizeof(waveFmt);
+		//waveFmt.wFormatTag = caps.dwFormats;
+		waveFmt.wFormatTag = WAVE_FORMAT_PCM;
+		waveFmt.nChannels = ch;
+		waveFmt.nSamplesPerSec = sampleRate;
+		waveFmt.wBitsPerSample = bitsPerSample;
+		waveFmt.nBlockAlign = waveFmt.nChannels * waveFmt.wBitsPerSample / 8;
+		waveFmt.nAvgBytesPerSec = waveFmt.nSamplesPerSec * waveFmt.nBlockAlign;
+		result.push_back(waveFmt);
+	};
+	if (caps.dwChannels >= 2)
+	{
+		if (caps.dwFormats & WAVE_FORMAT_1S08)
+			func(2, 11025, 8);
+		if (caps.dwFormats & WAVE_FORMAT_1S16)
+			func(2, 11025, 16);
+		if (caps.dwFormats & WAVE_FORMAT_2S08)
+			func(2, 22050, 8);
+		if (caps.dwFormats & WAVE_FORMAT_2S16)
+			func(2, 22050, 16);
+		if (caps.dwFormats & WAVE_FORMAT_44S08)
+			func(2, 44100, 8);
+		if (caps.dwFormats & WAVE_FORMAT_44S16)
+			func(2, 44100, 16);
+		if (caps.dwFormats & WAVE_FORMAT_48S08)
+			func(2, 48000, 8);
+		if (caps.dwFormats & WAVE_FORMAT_48S16)
+			func(2, 48000, 16);
+		if (caps.dwFormats & WAVE_FORMAT_96S08)
+			func(2, 96000, 8);
+		if (caps.dwFormats & WAVE_FORMAT_96S16)
+			func(2, 96000, 16);
+	}
+	else if (caps.dwChannels == 1)
+	{
+		if (caps.dwFormats & WAVE_FORMAT_1M08)
+			func(1, 11025, 8);
+		if (caps.dwFormats & WAVE_FORMAT_1M16)
+			func(1, 11025, 16);
+		if (caps.dwFormats & WAVE_FORMAT_2M08)
+			func(1, 22050, 8);
+		if (caps.dwFormats & WAVE_FORMAT_2M16)
+			func(1, 22050, 16);
+		if (caps.dwFormats & WAVE_FORMAT_44M08)
+			func(1, 44100, 8);
+		if (caps.dwFormats & WAVE_FORMAT_44M16)
+			func(1, 44100, 16);
+		if (caps.dwFormats & WAVE_FORMAT_48M08)
+			func(1, 48000, 8);
+		if (caps.dwFormats & WAVE_FORMAT_48M16)
+			func(1, 48000, 16);
+		if (caps.dwFormats & WAVE_FORMAT_96M08)
+			func(1, 96000, 8);
+		if (caps.dwFormats & WAVE_FORMAT_96M16)
+			func(1, 96000, 16);
+	}
+	return result;
+}
+
+int AudioDevCaptureSource_DS::start(const AudioDevInfo* auDevInfo, const WAVEFORMATEX& waveFmt)
 {
 	if (auDevInfo == NULL || (IsEqualGUID(auDevInfo->guid, GUID_NULL) && !auDevInfo->bPrimary))
 		return -1;
