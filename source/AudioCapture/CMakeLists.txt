@@ -31,6 +31,8 @@ set(SRC_LIST
     ${SRC_DIR}/AudioDevCaptureSrc_CAA.cpp
     ${SRC_DIR}/AudioDevCaptureSource_DS.cpp 
 	${SRC_DIR}/AudioDevManager.cpp 
+    ${SRC_DIR}/AudioOutputerCAA.cpp 
+    ${SRC_DIR}/AudioCoreApiHelper.cpp
 )
 
 add_definitions(-DUNICODE -D_UNICODE -DAUDIO_CAPTURE_DLL_EXPORT)
@@ -50,4 +52,6 @@ install (FILES ${INC_DIR}/AudioDev.h
     ${INC_DIR}/AudioDevCaptureSource.h 
 	${INC_DIR}/AudioDevCaptureSource_DS.h 
     ${INC_DIR}/AudioDevCaptureSrc_CAA.h
+    ${INC_DIR}/AudioOutputer.h
+    ${INC_DIR}/AudioOutputerCAA.h
     DESTINATION include)

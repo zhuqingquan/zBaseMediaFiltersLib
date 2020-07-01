@@ -1,11 +1,7 @@
 #include "AudioDevCaptureSrc_CAA.h"
-#include <mmdeviceapi.h>	//core audio api
-#include <Audioclient.h>
+#include "AudioCoreApiHelper.h"
 
 using namespace zMedia;
-
-#define REFTIMES_PER_SEC  10000000
-#define REFTIMES_PER_MILLISEC  10000
 
 AudioDevCaptureSrc_CAA::AudioDevCaptureSrc_CAA(const char * id)
 	: AudioDevCaptureSource(id)
@@ -18,32 +14,6 @@ AudioDevCaptureSrc_CAA::AudioDevCaptureSrc_CAA(const char * id)
 AudioDevCaptureSrc_CAA::~AudioDevCaptureSrc_CAA()
 {
 	stop();
-}
-
-HRESULT getIAudioClient(const LPCWSTR devID, IAudioClient** auclient)
-{
-	IMMDeviceEnumerator* pDevEnum = nullptr;
-	HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
-		__uuidof(IMMDeviceEnumerator), (LPVOID*)&pDevEnum);
-	if (hr != S_OK || nullptr == pDevEnum)
-	{
-		return S_FALSE;
-	}
-	IMMDevice* pDevice = nullptr;
-	hr = pDevEnum->GetDevice(devID, &pDevice);
-	if (hr != S_OK || nullptr == pDevice)
-	{
-		return S_FALSE;
-	}
-	//IAudioClient* pAuclient = nullptr;
-	hr = pDevice->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr, (void**)auclient);
-	if (FAILED(hr) || nullptr == *auclient)
-	{
-		return S_FALSE;
-	}
-	pDevEnum->Release();
-	pDevice->Release();
-	return hr;
 }
 
 std::vector<WAVEFORMATEX> AudioDevCaptureSrc_CAA::getSurpportFormat(const AudioDevInfo* auDevInfo)
@@ -111,7 +81,7 @@ int AudioDevCaptureSrc_CAA::start(const AudioDevInfo * auDevInfo, const WAVEFORM
 			return -4;
 		}
 	}
-	CoTaskMemFree(tmp); WAVE_FORMAT_EXTENSIBLE;
+	CoTaskMemFree(tmp);
 	REFERENCE_TIME hnsRequestedDuration = REFTIMES_PER_MILLISEC * 120;	//buffer大小只有120ms
 	hr = pAuclient->Initialize(
 		sharedMode?AUDCLNT_SHAREMODE_SHARED:AUDCLNT_SHAREMODE_EXCLUSIVE,

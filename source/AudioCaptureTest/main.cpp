@@ -5,9 +5,61 @@
 #include "AudioDevCaptureSource_DS.h"
 #include "AudioDevCaptureSrc_CAA.h"
 #include "TextHelper.h"
+#include "AudioOutputerCAA.h"
 #include <fstream>
 
 using namespace zMedia;
+
+int testAudioOutput(zMedia::AudioDevInfo* pOutputDevList, size_t outputDevCount)
+{
+	if (nullptr == pOutputDevList || outputDevCount <= 0)
+		return -1;
+	//输出到默认设备
+	AudioOutputer* aOutputer = new AudioOutputerCAA();
+	int result = aOutputer->start(pOutputDevList);
+	if (0 != result)
+	{
+		printf("Start AudioOutputer failed. ret=%d\n", result);
+		return result;
+	}
+	const WAVEFORMATEX& waveFmt = aOutputer->getWaveFormat();
+	uint32_t bufferFrameCount = aOutputer->getBufferFrameSize();
+
+	std::ifstream pcmStream("H:\\dk-48000-2ch-float.pcm", std::ios::binary);
+	if (!pcmStream)
+	{
+		printf("Open and read PCM data file failed.\n");
+		return -2;
+	}
+
+	int frameSize = (waveFmt.wBitsPerSample / 8) * waveFmt.nChannels;
+	uint32_t frameCountReaded = bufferFrameCount / 4;
+	uint32_t bytesCountToRead = frameCountReaded * frameSize;
+	byte* pcmDataBuf = (byte*)malloc(bytesCountToRead);
+	uint32_t bufOffset = 0;
+	pcmStream.read((char*)pcmDataBuf, bytesCountToRead);
+	while (pcmStream)
+	{
+		int frameWrited = aOutputer->write(pcmDataBuf+bufOffset, bytesCountToRead-bufOffset);
+		if (frameWrited < 0)
+		{
+			printf("Write pcm data to player failed.\n");
+			break;
+		}
+		else if (frameWrited > 0)
+		{
+			bufOffset += frameWrited * frameSize;
+			bufOffset %= bytesCountToRead;
+			if (bufOffset == 0)
+				pcmStream.read((char*)pcmDataBuf, bytesCountToRead);
+		}
+
+		//int millsec = frameWrited / (waveFmt.nSamplesPerSec / 1000);
+		Sleep(/*millsec*/1);
+	}
+	aOutputer->stop();
+	delete aOutputer;
+}
 
 int main(int argc, _TCHAR* argv[])
 {
@@ -56,6 +108,8 @@ int main(int argc, _TCHAR* argv[])
 
 
 	system("pause");
+
+	return testAudioOutput(pOutputDevList, outputDevCount);
 
 	std::vector<zMedia::AudioDevCaptureSource*> srcList(capDevCount, nullptr);
 	AudioDevCaptureSource* psrc = nullptr;
